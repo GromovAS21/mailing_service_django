@@ -22,9 +22,7 @@ class Notification(models.Model):
             MaxLengthValidator(1024, "Максимальная длина сообщения - 1024 символов"),
         ],
     )
-    delay = models.IntegerField(
-        choices=DelayChoices, default=DelayChoices.NO_DELAY, verbose_name="Задержка уведомления"
-    )
+    delay = models.IntegerField(choices=DelayChoices, verbose_name="Задержка уведомления")
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания уведомления")
 
@@ -36,13 +34,11 @@ class Notification(models.Model):
 class Recipient(models.Model):
     """Модель получателей."""
 
-    email = (
-        models.EmailField(
-            unique=True,
-            verbose_name="Адрес получателя",
-            blank=True,
-            null=True,
-        ),
+    email = models.EmailField(
+        unique=True,
+        verbose_name="Адрес получателя",
+        blank=True,
+        null=True,
     )
     telegram_id = models.PositiveBigIntegerField(
         unique=True,
