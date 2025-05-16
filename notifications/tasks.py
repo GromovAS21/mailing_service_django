@@ -1,8 +1,10 @@
+import requests
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.core.mail import send_mail
 
 from config import settings
+from config.settings import TELEGRAM_BOT_TOKEN
 
 
 logger = get_task_logger(__name__)
@@ -20,12 +22,9 @@ def send_email_notification(email: str, message: str) -> None:
 @shared_task()
 def send_telegram_notification(telegram_id: int, message: str) -> None:
     """Отправка уведомлений в Telegram."""
-    # try:
-    #     # response = requests.post(
-    #     #     f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-    #     #     data={"chat_id": telegram_id, "text": message},
-    #     # )
-    #     # response.raise_for_status()
-    # except Exception as e:
-    #     logger.error(e)
+    try:
+        params = {"chat_id": telegram_id, "text": message}
+        requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", params=params)
+    except Exception as e:
+        logger.error(e)
     pass
