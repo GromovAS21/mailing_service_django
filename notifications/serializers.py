@@ -1,36 +1,35 @@
 """Модель сериализаторов для модели уведомлений."""
 
-from typing import List, Union
+from typing import List
 
 from rest_framework import serializers
 
 from notifications.models import Notification, Recipient
+from notifications.utils import is_email
 
 
-class NotificationSerializer(serializers.Serializer):
+class RecipientField(serializers.Field):
+    """Поле получателя уведомления."""
+
+    def to_internal_value(self, data) -> List[str]:
+        """Преобразование получателя в список."""
+        if isinstance(data, (str, int)):
+            return [data]
+        elif isinstance(data, list):
+            return data
+
+
+class NotificationSerializer(serializers.ModelSerializer):
     """Сериализатор уведомления."""
 
-    recipient = serializers.ListField(child=serializers.CharField(max_length=150), write_only=True)
+    recipient = RecipientField(write_only=True)
 
     class Meta:
         """Метаданные сериализатора."""
 
         model = Notification
         fields = ("message", "recipient", "delay")
-
-    def validate_recipient(self, value: Union[str, list]) -> List[str]:
-        """
-        Валидация поля получателей на наличие одного получателя или списка получателей.
-
-        Args:
-            value (Union[str, list]): Один получатель или список получателей.
-
-        Returns:
-            List[str]: Список получателей.
-        """
-        if isinstance(value, str):
-            return [value]
-        return value
+        extra_kwargs = {"message": {"required": True}, "delay": {"required": True}}
 
     def create(self, validated_data) -> Notification:
         """Создание уведомления и получателей уведомления."""
@@ -38,11 +37,12 @@ class NotificationSerializer(serializers.Serializer):
         notification = Notification.objects.create(**validated_data)
 
         for address in recipients:
-            if isinstance(address, str):
+            if isinstance(address, int):
+                recipient, created = Recipient.objects.get_or_create(telegram_id=address)
+                recipient.notifications.add(notification)
+            elif is_email(address):
                 recipient, created = Recipient.objects.get_or_create(email=address)
                 recipient.notifications.add(notification)
             else:
-                recipient, created = Recipient.objects.get_or_create(telegram_id=address)
-                recipient.notifications.add(notification)
-
+                raise serializers.ValidationError({"recipient": "Невалидный адрес получателя."})
         return notification
