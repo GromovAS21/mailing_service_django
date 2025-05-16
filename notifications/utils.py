@@ -65,9 +65,10 @@ def send_notification(recipients: Union[str, int, list], message_id: int, delay:
     for address in recipients:
         task_datetime = datetime.now(timezone.utc) + get_time_delay(delay)
         notification = Notification.objects.get(id=message_id)
-        try:
+
+        if isinstance(address, int):
             recipient = Recipient.objects.get(telegram_id=address)
-        except ValueError:
+        else:
             recipient = Recipient.objects.get(email=address)
 
         try:
