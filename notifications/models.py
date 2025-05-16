@@ -60,3 +60,24 @@ class Recipient(models.Model):
             raise ValidationError("Может быть введён только один адрес получателя: email или telegram_id")
         if not self.email and not self.telegram_id:
             raise ValidationError("Необходимо ввести адрес получателя: email или telegram_id")
+
+
+class DeliveryLog(models.Model):
+    """Модель логов доставки уведомлений."""
+
+    class StatusChoices(models.TextChoices):
+        """Варианты статусов доставки уведомления."""
+
+        SUCCESS = "success", "Успешно"
+        FAILED = "failed", "Ошибка"
+
+    notification = models.ForeignKey(
+        Notification, on_delete=models.CASCADE, related_name="delivery_logs", verbose_name="Уведомление"
+    )
+    recipient = models.ForeignKey(Recipient, on_delete=models.CASCADE, verbose_name="Получатель")
+    status = models.CharField(max_length=50, choices=StatusChoices, verbose_name="Статус доставки")
+    error_message = models.TextField(blank=True, null=True, verbose_name="Сообщение об ошибке")
+
+    def __str__(self) -> str:
+        """Возвращает информацию о статусе доставки уведомления."""
+        return f"Log for Notification {self.notification} for Recipient{self.recipient} - {self.status}"
