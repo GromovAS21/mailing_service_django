@@ -9,8 +9,17 @@ from notifications.utils import send_notification
 class NotifyView(APIView):
     """Представление для отправки уведомлений."""
 
-    def post(self, request) -> Response:
-        """Отправка уведомлений."""
+    def post(self, request: object) -> Response:
+        """
+        Отправка уведомлений.
+
+        Args:
+            request(object): Объект запроса.
+        Returns:
+            Ответ с результатом отправки уведомлений.
+        Raises:
+            Exception: Возникает при ошибке отправки уведомлений.
+        """
         serializer = NotificationSerializer(data=request.data)
 
         if not serializer.is_valid():
@@ -20,6 +29,7 @@ class NotifyView(APIView):
         recipients = serializer.initial_data["recipient"]
         message = serializer.initial_data["message"]
         delay = serializer.initial_data["delay"]
+
         try:
             send_notification(recipients, message, delay)
         except Exception as e:

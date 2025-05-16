@@ -32,7 +32,14 @@ class NotificationSerializer(serializers.ModelSerializer):
         extra_kwargs = {"message": {"required": True}, "delay": {"required": True}}
 
     def create(self, validated_data) -> Notification:
-        """Создание уведомления и получателей уведомления."""
+        """
+        Создание уведомления и получателей уведомления.
+
+        Args:
+            validated_data: Валидированные данные.
+        Returns:
+            Созданное уведомление.
+        """
         recipients = validated_data.pop("recipient")
         notification = Notification.objects.create(**validated_data)
 
