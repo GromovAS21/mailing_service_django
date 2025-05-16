@@ -27,14 +27,16 @@ class NotifyView(APIView):
 
         serializer.save()
         recipients = serializer.initial_data["recipient"]
-        message = serializer.initial_data["message"]
         delay = serializer.initial_data["delay"]
 
+        message_id = serializer.instance.id
+
         try:
-            send_notification(recipients, message, delay)
+            send_notification(recipients, message_id, delay)
         except Exception as e:
             return Response(
                 {"message": f"Ошибка отправки уведомлений: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
         else:
             return Response({"message": "Уведомления отправлены"}, status=status.HTTP_200_OK)

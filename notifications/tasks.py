@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import requests
 from celery import shared_task
 from celery.utils.log import get_task_logger
@@ -13,7 +11,7 @@ logger = get_task_logger(__name__)  # логгер для отслеживани
 
 
 @shared_task()
-def send_email_notification(email: str, message: str) -> Tuple[bool, str]:
+def send_email_notification(email: str, message: str) -> None:
     """
     Отправка уведомлений по электронной почте.
 
@@ -21,17 +19,16 @@ def send_email_notification(email: str, message: str) -> Tuple[bool, str]:
         email (str): адрес электронной почты.
         message (str): текст уведомления.
     Returns:
-        Tuple[bool, str]: результат выполнения задачи (успех/ошибка).
+        None.
     """
     try:
         send_mail(subject="Уведомление", message=message, from_email=settings.EMAIL_HOST_USER, recipient_list=[email])
-        return True, ""
     except Exception as e:
-        return False, str(e)
+        logger.error(e)
 
 
 @shared_task()
-def send_telegram_notification(telegram_id: int, message: str) -> Tuple[bool, str]:
+def send_telegram_notification(telegram_id: int, message: str) -> None:
     """
     Отправка уведомлений в Telegram.
 
@@ -39,11 +36,11 @@ def send_telegram_notification(telegram_id: int, message: str) -> Tuple[bool, st
         telegram_id (int): идентификатор пользователя Telegram.
         message (str): текст уведомления.
     Returns:
-        Tuple[bool, str]: результат выполнения задачи (успех/ошибка).
+        None.
     """
     try:
         params = {"chat_id": telegram_id, "text": message}
         requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", params=params)
-        return True, ""
     except Exception as e:
-        return False, str(e)
+        logger.error(e)
+    pass
