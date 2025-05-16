@@ -50,7 +50,7 @@ class Recipient(models.Model):
         blank=True,
         null=True,
     )
-    notification = models.ManyToManyField(
+    notifications = models.ManyToManyField(
         Notification, related_name="recipients", verbose_name="Уведомления получателя", blank=True
     )
 
