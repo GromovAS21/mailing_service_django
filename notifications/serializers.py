@@ -5,7 +5,7 @@ from typing import List
 from rest_framework import serializers
 
 from notifications.models import Notification, Recipient
-from notifications.utils import is_email
+from notifications.validators import validate_is_email, validate_telegram_id
 
 
 class RecipientField(serializers.Field):
@@ -44,12 +44,12 @@ class NotificationSerializer(serializers.ModelSerializer):
         notification = Notification.objects.create(**validated_data)
 
         for address in recipients:
-            if isinstance(address, int):
+            if isinstance(address, int) and validate_telegram_id(address):
                 recipient, created = Recipient.objects.get_or_create(telegram_id=address)
                 recipient.notifications.add(notification)
-            elif is_email(address):
+            elif isinstance(address, str) and validate_is_email(address):
                 recipient, created = Recipient.objects.get_or_create(email=address)
                 recipient.notifications.add(notification)
             else:
-                raise serializers.ValidationError({"recipient": "Невалидный адрес получателя."})
+                raise serializers.ValidationError({"recipient": "Указан невалидный адрес получателя."})
         return notification
