@@ -1,0 +1,74 @@
+services:
+  db:
+    container_name: mailing_service_django_db
+    image: postgres:17.2
+    restart: unless-stopped
+    env_file:
+      - .env
+    expose:
+      - 5432
+    volumes:
+      - mailing_service_django:/var/lib/postgresql/data
+    healthcheck:
+      test: [ 'CMD-SHELL', '-c', 'pg_isready -U $POSTGRES_USER -d $POSTGRES_DB' ]
+      interval: 5s
+      retries: 5
+      timeout: 10s
+    networks:
+      - mailing_service_django
+
+  app:
+    container_name: mailing_service_django_app
+    build: .
+    tty: true
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    command: >
+      sh -c 'python3 manage.py makemigrations --noinput &&
+             python3 manage.py migrate &&
+             python3 manage.py runserver 0.0.0.0:8000'
+    networks:
+      - mailing_service_django
+
+  redis:
+    container_name: mailing_service_django_redis
+    image: redis
+    restart: unless-stopped
+    expose:
+      - 6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mailing_service_django
+
+  celery:
+    container_name: mailing_service_django_celery_worker
+    build: .
+    command: celery -A config worker --loglevel=info --concurrency=4
+    depends_on:
+      - redis
+      - db
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    networks:
+      - mailing_service_django
+
+volumes:
+  mailing_service_django:
+
+networks:
+  mailing_service_django:

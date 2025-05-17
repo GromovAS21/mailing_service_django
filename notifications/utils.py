@@ -1,22 +1,8 @@
-import re
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Union
 
 from notifications.models import DeliveryLog, Notification, Recipient
 from notifications.tasks import send_email_notification, send_telegram_notification
-
-
-def is_email(address: str) -> bool:
-    """
-    Проверяет, является ли строка email-адресом.
-
-    Args:
-        address(str): строка для проверки.
-    Returns:
-        bool: True, если строка является email-адресом, иначе False.
-    """
-    pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
-    return re.match(pattern, address) is not None
 
 
 def get_time_delay(delay: int) -> timedelta:
