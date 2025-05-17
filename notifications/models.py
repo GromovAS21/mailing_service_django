@@ -1,6 +1,6 @@
 """Модуль моделей для БД."""
 
-from django.core.validators import MaxLengthValidator, MinLengthValidator
+from django.core.validators import MaxLengthValidator, MaxValueValidator, MinLengthValidator, MinValueValidator
 from django.db import models
 from rest_framework.exceptions import ValidationError
 
@@ -40,11 +40,12 @@ class Recipient(models.Model):
         blank=True,
         null=True,
     )
-    telegram_id = models.PositiveBigIntegerField(
+    telegram_id = models.PositiveIntegerField(
         unique=True,
         verbose_name="Telegram ID получателя",
         blank=True,
         null=True,
+        validators=[MinValueValidator(100000000), MaxValueValidator(9999999999)],
     )
     notifications = models.ManyToManyField(
         Notification, related_name="recipients", verbose_name="Уведомления получателя", blank=True
